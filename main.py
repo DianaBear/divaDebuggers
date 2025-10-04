@@ -1,5 +1,5 @@
-import ee
-import geemap
+# import ee
+# import geemap
 import pandas as pd
 import matplotlib.pyplot as plt
 
