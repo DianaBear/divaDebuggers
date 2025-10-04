@@ -1,98 +1,172 @@
+# # app.py
+# import dash
+# from dash import dcc, html, Input, Output
+# import dash_leaflet as dl
+# import pandas as pd
+# import numpy as np
+# import plotly.express as px
+
+# # ---------- GENERATE FAKE DATA ----------
+# dates = pd.date_range(start="2025-01-01", end="2025-12-31", freq="7D")
+# num_points = len(dates)
+
+# flowers = ["Sunflower", "Daisy", "Rose", "Lily", "Tulip"]
+# pests = ["Beetle", "Aphid", "Caterpillar", "Moth", "Thrips"]
+
+# data = {
+#     "date": dates,
+#     "flower": np.random.choice(flowers, size=num_points),
+#     "ndvi": np.random.uniform(0.3, 0.8, size=num_points),
+#     "common_pest": np.random.choice(pests, size=num_points),
+#     "lat": np.random.uniform(32, 35, size=num_points),
+#     "lon": np.random.uniform(-83, -78, size=num_points)
+# }
+
+# df = pd.DataFrame(data)
+# df["bloom"] = df["ndvi"] > 0.5  # NDVI threshold for bloom
+
+# # ---------- DASH APP ----------
+# app = dash.Dash(__name__)
+# app.title = "Bloom & Pest Tracker"
+
+# app.layout = html.Div([
+#     html.H1("Bloom & Pest Tracker SC", style={"textAlign": "center"}),
+
+#     # Flower selector
+#     html.Div([
+#         html.Label("Select Flower:"),
+#         dcc.Dropdown(
+#             id="flower-dropdown",
+#             options=[{"label": f, "value": f} for f in flowers],
+#             value="Sunflower"
+#         )
+#     ], style={"width": "300px", "margin": "auto"}),
+
+#     # Map first
+#     html.Div(dl.Map(center=[33.5, -80.5], zoom=7, id="bloom-map", style={"width": "100%", "height": "500px"})),
+
+#     # Graph second
+#     html.Div(dcc.Graph(id="bloom-graph"))
+# ])
+
+# # ---------- CALLBACK ----------
+# @app.callback(
+#     Output("bloom-map", "children"),
+#     Output("bloom-graph", "figure"),
+#     Input("flower-dropdown", "value")
+# )
+# def update_flower(flower_name):
+#     # Filter dataset
+#     df_filtered = df[df["flower"] == flower_name]
+
+#     # --- Map markers ---
+#     markers = [
+#         dl.Marker(position=[row["lat"], row["lon"]],
+#                   children=dl.Tooltip(f"{row['flower']} - {'Blooming' if row['bloom'] else 'No bloom'}\nPest: {row['common_pest']}"))
+#         for i, row in df_filtered.iterrows()
+#     ]
+
+#     # --- Graph ---
+#     fig = px.line(df_filtered, x="date", y="ndvi", title=f"{flower_name} NDVI & Bloom Periods",
+#                   labels={"ndvi": "NDVI"})
+#     fig.add_scatter(x=df_filtered[df_filtered["bloom"]]["date"],
+#                     y=df_filtered[df_filtered["bloom"]]["ndvi"],
+#                     mode="markers",
+#                     marker=dict(color="orange", size=10),
+#                     name="Bloom")
+
+#     return markers, fig
+
+# # ---------- RUN APP ----------
+# if __name__ == "__main__":
+#     app.run(debug=True)
+
+
+
+# app.py
 import dash
 from dash import dcc, html, Input, Output
 import dash_leaflet as dl
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
-# load the CSV dataset
-df = pd.read_csv("dataset.csv")
+# ---------- GENERATE FAKE DATA ----------
+dates = pd.date_range(start="2025-01-01", end="2025-12-31", freq="7D")
+num_points = len(dates)
 
-# Initialize the Dash app
+flowers = ["Sunflower", "Daisy", "Rose", "Lily", "Tulip"]
+pests = ["Beetle", "Aphid", "Caterpillar", "Moth", "Thrips"]
+
+data = {
+    "date": dates,
+    "flower": np.random.choice(flowers, size=num_points),
+    "ndvi": np.random.uniform(0.3, 0.8, size=num_points),
+    "common_pest": np.random.choice(pests, size=num_points),
+    "lat": np.random.uniform(32, 35, size=num_points),
+    "lon": np.random.uniform(-83, -78, size=num_points)
+}
+
+df = pd.DataFrame(data)
+df["bloom"] = df["ndvi"] > 0.5  # NDVI threshold for bloom
+
+# ---------- DASH APP ----------
 app = dash.Dash(__name__)
-app.title = "PestAlert SC"
+app.title = "Bloom & Pest Tracker SC"
 
-# get unique regions
-regions = df['region'].unique()
-
-# function to determine marker color
-def ndvi_color(ndvi):
-    if ndvi > 0.7:
-        return "purple"
-    elif ndvi > 0.5:
-        return "orange"
-    else:
-        return "yellow"
-
-# create markers for map
-markers = [
-    dl.CircleMarker(
-        center=(row["latitude"], row["longitude"]),
-        radius=10,
-        color=ndvi_color(row["ndvi"]),
-        fillOpacity=0.6,
-        children=[
-            dl.Popup(f"{row['region']}<br>NDVI: {row['ndvi']}<br>Date: {row['date']}")
-        ],
-        id={"type": "marker", "index": idx}
-    )
-    for idx, row in df.iterrows()
-]
-
-# layout
 app.layout = html.Div([
-    html.H1("FlorAlert SC - Bloom Hotspots in South Carolina"),
-    dl.Map(
-        children=[
-            dl.TileLayer(),
-            dl.LayerGroup(markers)
-        ],
-        center=(33.9, -81),
-        zoom=7,
-        style={'width': '100%', 'height': '500px'}
-    ),
-    html.Br(),
-    html.Label("Select a region:"),
-    dcc.Dropdown(
-        id='region-dropdown',
-        options=[{"label": r, "value": r} for r in regions],
-        value=regions[0]
-    ),
-    dcc.Graph(id='ndvi-chart')
-])
+    html.H1("Bloom & Pest Tracker SC", style={"textAlign": "center", "color": "white"}),
 
-# callback to update chart based on selected region
+    # Flower selector
+    html.Div([
+        html.Label("Select Flower:", style={"color": "white"}),
+        dcc.Dropdown(
+            id="flower-dropdown",
+            options=[{"label": f, "value": f} for f in flowers],
+            value="Sunflower",
+            style={"width": "300px"}
+        )
+    ], style={"width": "300px", "margin": "auto"}),
+
+    # Map first
+    html.Div(dl.Map(center=[33.5, -80.5], zoom=7, id="bloom-map", style={"width": "100%", "height": "500px"})),
+
+    # Graph second
+    html.Div(dcc.Graph(id="bloom-graph"))
+], style={"backgroundColor": "#0B3D91", "padding": "20px"})  # SC dark blue
+
+# ---------- CALLBACK ----------
 @app.callback(
-    Output('ndvi-chart', 'figure'),
-    Input('region-dropdown', 'value')
+    Output("bloom-map", "children"),
+    Output("bloom-graph", "figure"),
+    Input("flower-dropdown", "value")
 )
-def update_chart(region):
-    filtered = df[df['region'] == region]
-    filtered['date'] = pd.to_datetime(filtered['date'])
-    
-    fig = px.line(
-        filtered,
-        x='date',
-        y='ndvi',
-        title=f"NDVI Trends for {region}",
-        markers=True
-    )
+def update_flower(flower_name):
+    # Filter dataset
+    df_filtered = df[df["flower"] == flower_name]
 
-    # highlight bloom points
-    fig.add_scatter(
-        x=filtered[filtered['ndvi'] > 0.5]['date'],
-        y=filtered[filtered['ndvi'] > 0.5]['ndvi'],
-        mode='markers',
-        marker=dict(color='orange', size=10),
-        name='Potential Bloom'
-    )
+    # --- Map markers ---
+    markers = [
+        dl.Marker(position=[row["lat"], row["lon"]],
+                  children=dl.Tooltip(f"{row['flower']} - {'Blooming' if row['bloom'] else 'No bloom'}\nPest: {row['common_pest']}"))
+        for i, row in df_filtered.iterrows()
+    ]
 
-    fig.update_layout(
-        yaxis=dict(range=[0,1], title='NDVI'),
-        xaxis=dict(title='Date')
-    )
+    # Add South Carolina tile layer from OpenStreetMap
+    tile_layer = dl.TileLayer(url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
 
-    return fig
+    # --- Graph ---
+    fig = px.line(df_filtered, x="date", y="ndvi", title=f"{flower_name} NDVI & Bloom Periods",
+                  labels={"ndvi": "NDVI"})
+    fig.add_scatter(x=df_filtered[df_filtered["bloom"]]["date"],
+                    y=df_filtered[df_filtered["bloom"]]["ndvi"],
+                    mode="markers",
+                    marker=dict(color="orange", size=10),
+                    name="Bloom")
+    fig.update_layout(plot_bgcolor="#0B3D91", paper_bgcolor="#0B3D91", font_color="white")  # Dark blue background
 
-# run the app
-if __name__ == '__main__':
-    app.run_server(debug=True)
+    return [tile_layer] + markers, fig
+
+# ---------- RUN APP ----------
+if __name__ == "__main__":
+    app.run(debug=True)
