@@ -4,6 +4,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+
+
+#what does this code do.... 
+#authenticates and initializes the earth engine api
+# south carolina is the area of interest
+# Pulls modis data from the last 5 years
+# gets the mean ndvi from the last 15 days
+# Stores NDVI values in pandas
+# shows potential bloom periods from the last 5
+# will plot the data
+
+# will export the data into a csv file 
+
+
+
+
+
 #authenticating eatrth api
 ee.Authenticate()
 ee.Initialize()
