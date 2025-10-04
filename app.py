@@ -104,117 +104,71 @@
 # # ---------- RUN APP ----------
 # if __name__ == "__main__":
 #     app.run(debug=True)
+# app.py
 
 
 
+# app.py
 import dash
-from dash import html, dcc
-from dash.dependencies import Input, Output
+from dash import dcc, html, Input, Output
 import dash_leaflet as dl
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
-# Flowers and example data (update dates/pests as needed)
-data = [
-    {"flower": "Aster", "lat": 34.5, "lon": -81.2, "bloom_start":"2025-09-01","bloom_end":"2025-10-15",
-     "pest_name":"Aphids", "pest_start":"2025-09-10","pest_end":"2025-10-20"},
-    {"flower": "Columbine", "lat": 34.0, "lon": -81.5, "bloom_start":"2025-04-15","bloom_end":"2025-05-30",
-     "pest_name":"Leaf Miners", "pest_start":"2025-04-20","pest_end":"2025-06-05"},
-    {"flower": "Daffodil", "lat": 34.2, "lon": -81.3, "bloom_start":"2025-03-01","bloom_end":"2025-04-15",
-     "pest_name":"Bulb Mites", "pest_start":"2025-03-05","pest_end":"2025-04-20"},
-    {"flower": "Joe Pye Weed", "lat": 34.7, "lon": -81.0, "bloom_start":"2025-07-01","bloom_end":"2025-09-01",
-     "pest_name":"Japanese Beetle", "pest_start":"2025-07-05","pest_end":"2025-09-05"},
-    {"flower": "Milkweed", "lat": 33.9, "lon": -81.1, "bloom_start":"2025-06-01","bloom_end":"2025-08-15",
-     "pest_name":"Milkweed Bugs", "pest_start":"2025-06-05","pest_end":"2025-08-20"},
-    {"flower": "Bee Balm", "lat": 34.3, "lon": -81.4, "bloom_start":"2025-05-15","bloom_end":"2025-07-30",
-     "pest_name":"Powdery Mildew", "pest_start":"2025-05-20","pest_end":"2025-08-05"},
-    {"flower": "Goldenrod", "lat": 34.1, "lon": -81.2, "bloom_start":"2025-08-01","bloom_end":"2025-10-01",
-     "pest_name":"Leafhoppers", "pest_start":"2025-08-05","pest_end":"2025-10-05"},
-    {"flower": "Daisy", "lat": 34.6, "lon": -81.0, "bloom_start":"2025-04-01","bloom_end":"2025-05-20",
-     "pest_name":"Aphids", "pest_start":"2025-04-05","pest_end":"2025-05-25"},
-    {"flower": "Sunflower", "lat": 34.8, "lon": -81.0, "bloom_start":"2025-06-01","bloom_end":"2025-07-15",
-     "pest_name":"Cucumber Beetle", "pest_start":"2025-06-10","pest_end":"2025-07-20"},
-    {"flower": "Coneflower", "lat": 34.4, "lon": -81.3, "bloom_start":"2025-05-01","bloom_end":"2025-07-10",
-     "pest_name":"Japanese Beetle", "pest_start":"2025-05-05","pest_end":"2025-07-15"},
-]
+# ---------- FLOWERS & PESTS ----------
+flowers = ["Sunflower", "Daisy", "Rose", "Lily", "Tulip"]
+pests = {
+    "Sunflower": ["Beetle", "Aphid"],
+    "Daisy": ["Caterpillar", "Moth"],
+    "Rose": ["Thrips", "Aphid"],
+    "Lily": ["Moth", "Beetle"],
+    "Tulip": ["Thrips", "Caterpillar"]
+}
 
-df = pd.DataFrame(data)
-df['bloom_start'] = pd.to_datetime(df['bloom_start'])
-df['bloom_end'] = pd.to_datetime(df['bloom_end'])
-df['pest_start'] = pd.to_datetime(df['pest_start'])
-df['pest_end'] = pd.to_datetime(df['pest_end'])
+# ---------- HARD-CODED COORDINATES (spread across SC) ----------
+flower_coords = {
+    "Sunflower": [
+        (33.95,-81.0),(34.0,-80.9),(34.05,-81.1),(33.9,-80.95),(34.1,-81.05),
+        (34.15,-81.0),(33.85,-80.98),(34.07,-80.97),(33.92,-81.02),(34.02,-81.04),
+        (33.97,-80.93),(34.06,-81.07),(33.88,-80.99),(34.03,-81.01),(33.96,-81.05),
+        (33.91,-81.03),(34.08,-80.96),(33.99,-81.06),(34.04,-80.92),(33.93,-80.97),
+        (33.89,-81.04),(34.05,-81.02),(33.94,-81.01),(34.01,-80.99),(33.98,-81.03)
+    ],
+    "Daisy": [
+        (34.2,-81.1),(34.1,-81.0),(34.05,-80.95),(34.15,-81.05),(34.0,-80.9),
+        (34.12,-81.02),(34.08,-81.03),(34.03,-80.97),(34.06,-81.04),(34.07,-81.06),
+        (34.09,-81.05),(34.11,-80.98),(34.0,-81.01),(34.04,-81.02),(34.02,-81.03),
+        (34.05,-80.96),(34.01,-81.07),(34.03,-81.0),(34.08,-81.01),(34.06,-81.03),
+        (34.12,-80.97),(34.09,-81.06),(34.07,-80.99),(34.0,-81.04),(34.1,-81.03)
+    ],
+    "Rose": [
+        (33.8,-81.2),(33.85,-81.15),(33.82,-81.18),(33.87,-81.1),(33.83,-81.12),
+        (33.9,-81.14),(33.88,-81.16),(33.86,-81.11),(33.89,-81.09),(33.84,-81.13),
+        (33.91,-81.12),(33.87,-81.08),(33.85,-81.09),(33.9,-81.1),(33.88,-81.07),
+        (33.83,-81.06),(33.92,-81.15),(33.81,-81.12),(33.86,-81.13),(33.84,-81.08),
+        (33.89,-81.14),(33.82,-81.11),(33.91,-81.09),(33.85,-81.1),(33.87,-81.07)
+    ],
+    "Lily": [
+        (34.0,-80.8),(34.05,-80.85),(34.02,-80.82),(34.03,-80.87),(34.01,-80.83),
+        (34.04,-80.88),(34.06,-80.81),(34.07,-80.86),(34.08,-80.84),(34.05,-80.82),
+        (34.03,-80.83),(34.02,-80.85),(34.06,-80.88),(34.01,-80.84),(34.07,-80.82),
+        (34.0,-80.86),(34.05,-80.83),(34.08,-80.81),(34.04,-80.85),(34.02,-80.87),
+        (34.03,-80.84),(34.06,-80.82),(34.01,-80.88),(34.07,-80.83),(34.08,-80.86)
+    ],
+    "Tulip": [
+        (33.95,-80.7),(34.0,-80.75),(33.92,-80.72),(33.97,-80.78),(33.93,-80.74),
+        (33.98,-80.71),(33.96,-80.79),(33.99,-80.73),(33.91,-80.77),(33.94,-80.76),
+        (33.95,-80.72),(33.97,-80.75),(33.92,-80.78),(33.98,-80.74),(33.93,-80.79),
+        (33.96,-80.71),(33.99,-80.76),(33.94,-80.73),(33.91,-80.75),(33.95,-80.78),
+        (33.97,-80.72),(33.92,-80.74),(33.98,-80.76),(33.96,-80.73),(33.99,-80.71)
+    ]
+}
 
-# Flower icons (place PNGs in assets/)
-flower_icons = {flower: f"/assets/{flower.lower().replace(' ','_')}.png" for flower in df['flower']}
-
-# Initialize app
-app = dash.Dash(__name__)
-
-# Layout
-app.layout = html.Div([
-    html.H1("SC Flower Bloom & Pest Tracker", style={"textAlign":"center"}),
-    html.Div([
-        html.Label("Select Flower:"),
-        dcc.Dropdown(
-            id='flower-dropdown',
-            options=[{"label": f, "value": f} for f in df['flower'].unique()],
-            value="Sunflower"
-        )
-    ], style={"width":"300px","margin":"auto"}),
-    
-    dl.Map(center=[34.0, -81.0], zoom=7, children=[
-        dl.TileLayer(url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"),
-        dl.LayerGroup(id="map-markers")
-    ], style={'width': '100%', 'height': '500px'}, id="map"),
-    
-    dcc.Graph(id="bloom-graph")
-])
-
-# Callbacks
-@app.callback(
-    [Output("map-markers", "children"),
-     Output("bloom-graph", "figure")],
-    [Input("flower-dropdown", "value")]
-)
-def update_flower(flower_name):
-    # Filter dataframe
-    dff = df[df['flower'] == flower_name]
-    
-    # Create markers
-    markers = []
-    for _, row in dff.iterrows():
-        icon_url = flower_icons.get(row['flower'], "/assets/default_flower.png")
-        markers.append(
-            dl.Marker(
-                position=[row['lat'], row['lon']],
-                icon=dl.Icon(iconUrl=icon_url, iconSize=[30,30], iconAnchor=[15,30]),
-                children=[
-                    dl.Tooltip(f"{row['flower']}"),
-                    dl.Popup([
-                        html.B(row['flower']),
-                        html.Br(),
-                        f"Pest: {row['pest_name']}",
-                        html.Br(),
-                        f"Bloom: {row['bloom_start'].date()} to {row['bloom_end'].date()}",
-                        html.Br(),
-                        f"Pest Active: {row['pest_start'].date()} to {row['pest_end'].date()}"
-                    ])
-                ]
-            )
-        )
-    
-    # Create bloom/pest figure
-    fig = px.timeline(
-        dff,
-        x_start="bloom_start",
-        x_end="bloom_end",
-        y="flower",
-        color_discrete_sequence=["orange"]
-    )
-    fig.add_bar(x=dff['pest_start'], y=dff['flower'], base=0, width=0.4, marker_color='red', name='Pest Active')
-    fig.update_layout(yaxis={"categoryorder":"total ascending"}, title=f"{flower_name} Bloom & Pest Timeline")
-    
-    return markers, fig
-
-if __name__ == "__main__":
-    app.run(debug=True)
+# ---------- CREATE DATAFRAME ----------
+records = []
+for flower in flowers:
+    coords = flower_coords[flower]
+    for lat, lon in coords:
+        ndvi = 0.3 + 0.5 * np.random.rand()
+        bloom = ndvi > 0.5
