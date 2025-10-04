@@ -26,13 +26,13 @@ ee.Authenticate()
 ee.Initialize()
 
 #the south carolina region
-sc_bbox = ee.Geometry.Rectangle([-83, 32, -78, 35])  # [W, S, E, N]
+sc_bbox = ee.Geometry.Rectangle([-83, 32, -78, 35])
 
 #loading the dataset
 modis = ee.ImageCollection('MODIS/061/MOD13Q1') \
             .filterBounds(sc_bbox) \
             .filterDate('2018-01-01', '2023-12-31') \
-            .select('NDVI')  # Use 'EVI' if you prefer
+            .select('NDVI')
 
 #mean NDVI calculation function
 def mean_ndvi(image):
@@ -57,7 +57,7 @@ ndvi_df = pd.DataFrame({
 })
 
 # detecting bloom periods
-threshold = 0.5  # NDVI above this may indicate bloom
+threshold = 0.5 
 ndvi_df['bloom'] = ndvi_df['ndvi'] > threshold
 
 # plotting the results
